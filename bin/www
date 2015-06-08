@@ -33,8 +33,7 @@ var server = app.listen(app.get('port'), function() {
     console.log('Express server listening on port ' + server.address().port);
 });
 
-require('../chatServer').listen(server);
-console.log("after require chatServer");
+require('../tankServer').listen(server);
 
 /**
  * Normalize a port into a number, string, or false.

@@ -78,7 +78,8 @@
         },
         //第一个界面用户提交用户名
         usernameSubmit:function(){
-            var username = d.getElementById("username").value;
+            //var username = d.getElementById("username").value;
+            var username =$("#username").val();
             if(username != ""){
                 d.getElementById("username").value = '';
                 d.getElementById("loginbox").style.display = 'none';
