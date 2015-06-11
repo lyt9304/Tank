@@ -19,7 +19,7 @@ var cuth=32;
 var draww=32;//画到canvas上的宽和高
 var drawh=32;
 
-var tankSpd=1.5;
+var tankSpd=5;
 var fireSpd=1.5;
 
 var gamingMap=[];//当前正在玩的游戏地图
@@ -36,11 +36,25 @@ var tankrtStarty=0;
 var tankdnStartx=128;
 var tankdnStarty=0;
 
+var fireupStartx=128;//炮弹切图的左上角位置
+var fireupStarty=64;
+
+var firednStartx=224;
+var firednStarty=32;
+
+var fireltStartx=192;
+var fireltStarty=32;
+
+var firertStartx=160;
+var firertStarty=32;
+
 var wallStartx=224;//墙切图的左上角位置
 var wallStarty=96;
 
 var boxStartx=0;//box切图的左上角位置
 var boxStarty=96;
+
+var tolerance=3;//偏差2px,不然碰撞检测有些太狭窄过不去
 
 //map中0：啥都没，1：wall，2：box
 //TODO:扩展为Map，可以有很多种地图
@@ -75,6 +89,8 @@ gamingMap=[
 
 var tankEnt = new tankObj();
 tankEnt.init();
+
+var fireArr=[];
 
 function initGame(){
     canvas=document.getElementById("gameCanvas");
@@ -114,15 +130,31 @@ function drawMap(gameMap){
     }
 }
 
+//需要键盘触发的
 function updateGameView(){
     //Step1:Background;
 
     //Step2:UpdatedGamingMap;
     drawMap(gamingMap);
+
     //Step3:UpdatedTankObjs;(fwd,move);
     tankEnt.draw();
+
     //Step4:Fire;
+    for(var i=0;i<fireArr.length;i++){
+        if(checkFire(fireArr[i].x,fireArr[i]))
+            fireArr[i].draw();
+    }
+
     //Step5:OtherEvent:destroy;
+}
+
+//时间触发的，用于绘制子弹
+function timelyUpdateGameView(){
+    for(var i=0;i<fireArr.length;i++){
+        if(checkFire(fireArr[i].x,fireArr[i]))
+        fireArr[i].draw();
+    }
 }
 
 //监听键盘事件
@@ -130,52 +162,75 @@ function updateGameView(){
 var keyPressList=[];
 document.onkeydown=function(e){
     e = event || window.event || arguments.callee.caller.arguments[0];
+    console.log("key:"+ e.keyCode);
     switch (e.keyCode){
         case 37://left
-            if(checkField(tankEnt.x-tankEnt.spd,tankEnt.y)){
+            if(checkField(tankEnt.x-tankEnt.spd+tolerance,tankEnt.y+tolerance)){
                 tankEnt.fwd=2;
                 tankEnt.x-=tankEnt.spd;
                 updateGameView();
             }
             break;
         case 38://up
-            if(checkField(tankEnt.x,tankEnt.y-tankEnt.spd)){
+            if(checkField(tankEnt.x+tolerance,tankEnt.y-tankEnt.spd+tolerance)){
                 tankEnt.fwd=0;
                 tankEnt.y-=tankEnt.spd;
                 updateGameView();
             }
             break;
         case 39://right
-            if(checkField(tankEnt.x+tankEnt.spd,tankEnt.y)){
+            if(checkField(tankEnt.x+tankEnt.spd+draww-tolerance,tankEnt.y+tolerance)){
                 tankEnt.fwd=3;
                 tankEnt.x+=tankEnt.spd;
                 updateGameView();
             }
             break;
         case 40://down
-            if(checkField(tankEnt.x,tankEnt.y+tankEnt.spd)){
+            if(checkField(tankEnt.x+tolerance,tankEnt.y+tankEnt.spd+drawh-tolerance)){
                 tankEnt.fwd=1;
                 tankEnt.y+=tankEnt.spd;
                 updateGameView();
             }
             break;
         case 32://space fire
-            //TODO:fire
+            //生成一个炮弹，放到维护的数组
+            var fireEnt = new fireObj();
+            //根据坦克方向生成对应方向的炮弹
+            switch (tankEnt.fwd){
+                case 0://up
+                    fireEnt.init(tankEnt.x+draww/2,tankEnt.y,0);
+                    break;
+                case 1://down
+                    fireEnt.init(tankEnt.x+draww/2,tankEnt.y+drawh,1);
+                    break;
+                case 2://left
+                    fireEnt.init(tankEnt.x,tankEnt.y+draww/2,0);
+                    break;
+                case 3://right
+                    fireEnt.init(tankEnt.x+draww,tankEnt.y+draww/2,0);
+                    break;
+                default:break;
+            }
+            fireArr.push(fireEnt);
+            updateGameView();
             break;
         default:
             break;
     }
 };
 
-//document.onkeyup=function(e){
-//    e = event || window.event || arguments.callee.caller.arguments[0];
-//};
-
+//碰撞检测
 function checkField(x,y){
-    return true;
+    console.log(gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)]);
+    if(gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)] == 0){
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
-function checkFire(x,y){
+function checkFire(x,y,fwd){
     return true;
 }
 
