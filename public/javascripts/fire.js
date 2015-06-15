@@ -26,6 +26,16 @@ fireObj.prototype.init=function(_x,_y,_fwd){
     this.fwd=_fwd;
 };
 
+fireObj.prototype.draw=function(){
+    switch(this.fwd){
+        case 0: content.drawImage(AllPic,fireupStartx,fireupStarty,cutw,cuth,this.x,this.y,draww,drawh);break;
+        case 1: content.drawImage(AllPic,firednStartx,firednStarty,cutw,cuth,this.x,this.y,draww,drawh);break;
+        case 2: content.drawImage(AllPic,fireltStartx,fireltStarty,cutw,cuth,this.x,this.y,draww,drawh);break;
+        case 3: content.drawImage(AllPic,firertStartx,firertStarty,cutw,cuth,this.x,this.y,draww,drawh);break;
+        default: break;
+    }
+};
+
 fireObj.prototype.check=function(gameMap){
 
 };
