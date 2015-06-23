@@ -155,7 +155,6 @@ function timelyUpdateGameView(){
         if(checkFire(fireArr[i].x,fireArr[i]))
         fireArr[i].draw();
     }
-}
 
 //监听键盘事件
 //37:left 38:up 39:right 40:down space:32
@@ -198,16 +197,16 @@ document.onkeydown=function(e){
             //根据坦克方向生成对应方向的炮弹
             switch (tankEnt.fwd){
                 case 0://up
-                    fireEnt.init(tankEnt.x+draww/2,tankEnt.y,0);
+                    fireEnt.init(tankEnt.x,tankEnt.y-drawh,0);
                     break;
                 case 1://down
-                    fireEnt.init(tankEnt.x+draww/2,tankEnt.y+drawh,1);
+                    fireEnt.init(tankEnt.x,tankEnt.y+drawh,1);
                     break;
                 case 2://left
-                    fireEnt.init(tankEnt.x,tankEnt.y+draww/2,0);
+                    fireEnt.init(tankEnt.x-draww,tankEnt.y,2);
                     break;
                 case 3://right
-                    fireEnt.init(tankEnt.x+draww,tankEnt.y+draww/2,0);
+                    fireEnt.init(tankEnt.x+draww,tankEnt.y,3);
                     break;
                 default:break;
             }
@@ -231,7 +230,13 @@ function checkField(x,y){
 }
 
 function checkFire(x,y,fwd){
-    return true;
+    console.log(gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)]);
+    if(gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)] == 0){
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 

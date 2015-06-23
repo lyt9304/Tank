@@ -18,8 +18,10 @@ fireObj.prototype.init=function(_x,_y,_fwd){
     this.startx=_x;
     this.starty=_y;
 
-    this.x=_x;
-    this.y=_y;
+    //if(gamingMap[this._x*we+this._y]!=0){
+        this.x=_x;
+        this.y=_y;
+    //};
 
     //设置speed和朝向
     this.spd=fireSpd;
