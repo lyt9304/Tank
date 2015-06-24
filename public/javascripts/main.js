@@ -36,6 +36,9 @@ var tankrtStarty=0;
 var tankdnStartx=128;
 var tankdnStarty=0;
 
+var firex=160; //小炮弹
+var firey=64;
+
 var fireupStartx=128;//炮弹切图的左上角位置
 var fireupStarty=64;
 
@@ -141,21 +144,32 @@ function updateGameView(){
     tankEnt.draw();
 
     //Step4:Fire;
+    //var collusion=fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
     for(var i=0;i<fireArr.length;i++){
-        if(checkFire(fireArr[i].x,fireArr[i]))
-            fireArr[i].draw();
+        if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0 && fireArr[i].live)
+        {
+            fireArr[i].move(fireArr[i].fwd);
+        }
+        else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)== 2)
+        {
+            fireArr[i].destroy(fireArr[i].x,fireArr[i].y);
+        }
     }
 
     //Step5:OtherEvent:destroy;
 }
 
 //时间触发的，用于绘制子弹
-function timelyUpdateGameView(){
+/*function timelyUpdateGameView(){
+    drawMap(gamingMap);
+    tankEnt.draw();
+    var collusion=fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
     for(var i=0;i<fireArr.length;i++){
-        if(checkFire(fireArr[i].x,fireArr[i]))
-        fireArr[i].draw();
+        if(collusion==0)
+           fireArr[i].move(fireArr[i].fwd);
     }
-}
+}*/
+setInterval(updateGameView,100);
 
 //监听键盘事件
 //37:left 38:up 39:right 40:down space:32
@@ -195,19 +209,19 @@ document.onkeydown=function(e){
         case 32://space fire
             //生成一个炮弹，放到维护的数组
             var fireEnt = new fireObj();
-            //根据坦克方向生成对应方向的炮弹
+            //根据坦克方向生成对应方向和位置的炮弹
             switch (tankEnt.fwd){
                 case 0://up
-                    fireEnt.init(tankEnt.x+draww/2,tankEnt.y,0);
+                    fireEnt.init(tankEnt.x,tankEnt.y-drawh/2,0);
                     break;
                 case 1://down
-                    fireEnt.init(tankEnt.x+draww/2,tankEnt.y+drawh,1);
+                    fireEnt.init(tankEnt.x,tankEnt.y+drawh/2,1);
                     break;
                 case 2://left
-                    fireEnt.init(tankEnt.x,tankEnt.y+draww/2,0);
+                    fireEnt.init(tankEnt.x-draww/2,tankEnt.y,2);
                     break;
                 case 3://right
-                    fireEnt.init(tankEnt.x+draww,tankEnt.y+draww/2,0);
+                    fireEnt.init(tankEnt.x+draww/2,tankEnt.y,3);
                     break;
                 default:break;
             }
@@ -229,9 +243,4 @@ function checkField(x,y){
         return false;
     }
 }
-
-function checkFire(x,y,fwd){
-    return true;
-}
-
 
