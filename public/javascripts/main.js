@@ -120,13 +120,13 @@ function drawBox(cx,cy){
 
 function drawMap(gameMap){
     drawBackground();
-    for(var i=0;i<we;i++){
-        for(var j=0;j<he;j++){
+    for(var i=0;i<he;i++){
+        for(var j=0;j<we;j++){
             var mapItem=gameMap[i*we+j];
             switch(mapItem){
                 case 0:break;
-                case 1:drawWall(i*draww,j*drawh);break;
-                case 2:drawBox(i*draww,j*drawh);break;
+                case 1:drawWall(j*draww,i*drawh);break;
+                case 2:drawBox(j*draww,i*drawh);break;
                 default:break;
             }
         }
@@ -243,4 +243,3 @@ function checkField(x,y){
         return false;
     }
 }
-
