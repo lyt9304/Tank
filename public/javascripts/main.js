@@ -150,7 +150,7 @@ function updateGameView(){
         {
             fireArr[i].move(fireArr[i].fwd);
         }
-        else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)== 2)
+        else
         {
             fireArr[i].destroy(fireArr[i].x,fireArr[i].y);
         }
@@ -236,7 +236,7 @@ document.onkeydown=function(e){
 //碰撞检测
 function checkField(x,y){
     console.log(gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)]);
-    if(gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)] == 0){
+    if(gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)] == 0){
         return true;
     }
     else{

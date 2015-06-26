@@ -20,7 +20,7 @@ tankObj.prototype.init=function(_id){
         this.x = Math.floor(Math.random()*(we-1)+1);//[1,we-1]
         this.y = Math.floor(Math.random()*(he-1)+1);
     }
-    while(gamingMap[this.x*we+this.y]!=0);
+    while(gamingMap[this.y*we+this.x]!=0);
 
     //变换到实际坐标位置
     this.x=this.x*draww;

@@ -63,14 +63,8 @@ fireObj.prototype.check=function(x,y,fwd){
         case 3: x+=draww/2+1;break;
         default: break;
     }
-    var coll=gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)];
+    var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
     return coll;
-    /*if(gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)] == 0){
-        return true;
-    }
-    else{
-        return false;
-    }*/
 };
 
 fireObj.prototype.destroy=function(x,y){
@@ -82,8 +76,7 @@ fireObj.prototype.destroy=function(x,y){
     }
     else
     {
-        gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)]=0;
-        console.log(Math.floor(x/draww)*we+Math.floor(y/drawh));
+        gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]=0;
         picNo=0;
     }
 };
