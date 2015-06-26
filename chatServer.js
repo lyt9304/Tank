@@ -26,7 +26,7 @@ io.on('connection', function(socket){
 
         //向所有客户端广播用户加入
         io.emit('login', {onlineUsers:onlineUsers, onlineCount:onlineCount, user:obj});
-        console.log(obj.username+'加入了聊天室');
+        console.log(obj.username+'加入了游戏');
     });
 
     //监听用户退出
@@ -43,7 +43,7 @@ io.on('connection', function(socket){
 
             //向所有客户端广播用户退出
             io.emit('logout', {onlineUsers:onlineUsers, onlineCount:onlineCount, user:obj});
-            console.log(obj.username+'退出了聊天室');
+            console.log(obj.username+'退出了游戏');
         }
     });
 
@@ -53,6 +53,8 @@ io.on('connection', function(socket){
         io.emit('message', obj);
         console.log(obj.username+'说：'+obj.content);
     });
+
+
 
 });
 

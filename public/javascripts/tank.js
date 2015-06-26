@@ -31,6 +31,14 @@ tankObj.prototype.init=function(_id){
     this.fwd=Math.floor(Math.random()*5+0);//[0,4]
 };
 
+tankObj.prototype.initWithArg=function(_x,_y,_fwd,_id){
+    this.x=_x;
+    this.y=_y;
+    this.fwd=_fwd;
+    this.id=_id;
+    this.spd=tankSpd;
+};
+
 tankObj.prototype.draw=function(){
     switch(this.fwd){
         case 0: content.drawImage(AllPic,tankupStartx,tankupStarty,cutw,cuth,this.x,this.y,draww,drawh);break;

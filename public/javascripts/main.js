@@ -95,6 +95,7 @@ tankEnt.init();
 
 var fireArr=[];
 
+
 function initGame(){
     canvas=document.getElementById("gameCanvas");
     content=canvas.getContext("2d");

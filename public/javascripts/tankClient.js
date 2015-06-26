@@ -18,17 +18,13 @@
             location.reload();
         },
 
-        genUid:function(){
-            return new Date().getTime()+""+Math.floor(Math.random()*899+100);
-        },
-
         //第一个界面用户提交用户名
         usernameSubmit:function(){
             var username = $("#username").val();
             if(username != ""){
                 $("#username").val("");
                 $("#loginbox").hide();
-                $("#chatbox").show();
+                $("#playbox").show();
                 this.init(username);
             }
             return false;
