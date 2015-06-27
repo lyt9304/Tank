@@ -9,6 +9,8 @@ var onlineUsers = {};
 //当前在线人数
 var onlineCount = 0;
 
+
+
 io.on('connection', function(socket){
     console.log('a user connected');
 
@@ -48,11 +50,11 @@ io.on('connection', function(socket){
     });
 
     //监听用户发布聊天内容
-    socket.on('message', function(obj){
-        //向所有客户端广播发布的消息
-        io.emit('message', obj);
-        console.log(obj.username+'说：'+obj.content);
-    });
+    //socket.on('message', function(obj){
+    //    //向所有客户端广播发布的消息
+    //    io.emit('message', obj);
+    //    console.log(obj.username+'说：'+obj.content);
+    //});
 
 
 

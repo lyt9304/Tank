@@ -6,6 +6,11 @@
 var canvas;//canvas对象
 var content;//canvas画布内容
 
+var currentUser="";
+var currentTank;
+
+var gameStartFlag=false;
+
 var w,h;//canvas的宽度和长度
 var we=10;//canvas可以容下的宽度的数量和长度的数量
 var he=10;
@@ -59,42 +64,28 @@ var boxStarty=96;
 
 var tolerance=3;//偏差2px,不然碰撞检测有些太狭窄过不去
 
+
 //map中0：啥都没，1：wall，2：box
 //TODO:扩展为Map，可以有很多种地图
-var gameMap={
-    "1":[
-        1,1,1,1,1,1,1,1,1,1,
-        1,0,0,0,0,0,0,0,0,1,
-        1,0,0,2,0,2,0,2,0,1,
-        1,0,0,2,0,2,2,0,0,1,
-        1,0,2,0,0,0,0,2,0,1,
-        1,0,0,0,2,0,2,2,0,1,
-        1,0,2,0,0,0,2,0,0,1,
-        1,0,0,2,0,2,0,2,0,1,
-        1,0,0,0,0,0,0,0,0,1,
-        1,1,1,1,1,1,1,1,1,1
-    ]
-};
 
-gamingMap=[
-    1,1,1,1,1,1,1,1,1,1,
-    1,0,0,0,0,0,0,0,0,1,
-    1,0,0,2,0,2,0,2,0,1,
-    1,0,0,2,0,2,2,0,0,1,
-    1,0,2,0,0,0,0,2,0,1,
-    1,0,0,0,2,0,2,2,0,1,
-    1,0,2,0,0,0,2,0,0,1,
-    1,0,0,2,0,2,0,2,0,1,
-    1,0,0,0,0,0,0,0,0,1,
-    1,1,1,1,1,1,1,1,1,1
-];
+var gamingMap=[];
+var gamingTank={};
+var gaminFire={};
 /************全局需要的参数**************/
 
-var tankEnt = new tankObj();
-tankEnt.init();
+//var tankEnt = new tankObj();
+//tankEnt.init();
 
 var fireArr=[];
+var tankMap={};
 
+function deepCopy(source) {
+    var result={};
+    for (var key in source) {
+        result[key] = typeof source[key]==='object'? deepCoyp(source[key]): source[key];
+    }
+    return result;
+}
 
 function initGame(){
     canvas=document.getElementById("gameCanvas");
@@ -103,7 +94,17 @@ function initGame(){
     w=canvas.width;
     h=canvas.height;
 
-    updateGameView();
+    for(var item in gamingTank){
+        //根据初始信息在本地新建好坦克对象,tankMap:id-obj
+        var tankEnt=new tankObj();
+        tankEnt.init(item,gamingTank[item][0],gamingTank[item][1],gamingTank[item][2],gamingTank[item][3]);
+        tankMap[item]=tankEnt;
+        if(item == currentUser){
+            currentTank=tankMap[item];
+        }
+    }
+    console.log(tankMap);
+    console.log(currentTank);
 }
 
 function drawBackground(){
@@ -120,7 +121,6 @@ function drawBox(cx,cy){
 }
 
 function drawMap(gameMap){
-    drawBackground();
     for(var i=0;i<he;i++){
         for(var j=0;j<we;j++){
             var mapItem=gameMap[i*we+j];
@@ -128,6 +128,7 @@ function drawMap(gameMap){
                 case 0:break;
                 case 1:drawWall(j*draww,i*drawh);break;
                 case 2:drawBox(j*draww,i*drawh);break;
+                case 3:break;
                 default:break;
             }
         }
@@ -137,25 +138,31 @@ function drawMap(gameMap){
 //需要键盘触发的
 function updateGameView(){
     //Step1:Background;
+    drawBackground();
 
     //Step2:UpdatedGamingMap;
     drawMap(gamingMap);
 
     //Step3:UpdatedTankObjs;(fwd,move);
-    tankEnt.draw();
+    for(var item in tankMap){
+        console.log(item);
+        tankMap[item].draw();
+    }
+
+    console.log("after draw");
 
     //Step4:Fire;
     //var collusion=fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
-    for(var i=0;i<fireArr.length;i++){
-        if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0 && fireArr[i].live)
-        {
-            fireArr[i].move(fireArr[i].fwd);
-        }
-        else
-        {
-            fireArr[i].destroy(fireArr[i].x,fireArr[i].y);
-        }
-    }
+    //for(var i=0;i<fireArr.length;i++){
+    //    if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0 && fireArr[i].live)
+    //    {
+    //        fireArr[i].move(fireArr[i].fwd);
+    //    }
+    //    else
+    //    {
+    //        fireArr[i].destroy(fireArr[i].x,fireArr[i].y);
+    //    }
+    //}
 
     //Step5:OtherEvent:destroy;
 }
@@ -170,69 +177,11 @@ function updateGameView(){
            fireArr[i].move(fireArr[i].fwd);
     }
 }*/
-setInterval(updateGameView,100);
 
-//监听键盘事件
-//37:left 38:up 39:right 40:down space:32
-var keyPressList=[];
-document.onkeydown=function(e){
-    e = event || window.event || arguments.callee.caller.arguments[0];
-    console.log("key:"+ e.keyCode);
-    switch (e.keyCode){
-        case 37://left
-            if(checkField(tankEnt.x-tankEnt.spd+tolerance,tankEnt.y+tolerance)){
-                tankEnt.fwd=2;
-                tankEnt.x-=tankEnt.spd;
-                updateGameView();
-            }
-            break;
-        case 38://up
-            if(checkField(tankEnt.x+tolerance,tankEnt.y-tankEnt.spd+tolerance)){
-                tankEnt.fwd=0;
-                tankEnt.y-=tankEnt.spd;
-                updateGameView();
-            }
-            break;
-        case 39://right
-            if(checkField(tankEnt.x+tankEnt.spd+draww-tolerance,tankEnt.y+tolerance)){
-                tankEnt.fwd=3;
-                tankEnt.x+=tankEnt.spd;
-                updateGameView();
-            }
-            break;
-        case 40://down
-            if(checkField(tankEnt.x+tolerance,tankEnt.y+tankEnt.spd+drawh-tolerance)){
-                tankEnt.fwd=1;
-                tankEnt.y+=tankEnt.spd;
-                updateGameView();
-            }
-            break;
-        case 32://space fire
-            //生成一个炮弹，放到维护的数组
-            var fireEnt = new fireObj();
-            //根据坦克方向生成对应方向和位置的炮弹
-            switch (tankEnt.fwd){
-                case 0://up
-                    fireEnt.init(tankEnt.x,tankEnt.y-drawh/2,0);
-                    break;
-                case 1://down
-                    fireEnt.init(tankEnt.x,tankEnt.y+drawh/2,1);
-                    break;
-                case 2://left
-                    fireEnt.init(tankEnt.x-draww/2,tankEnt.y,2);
-                    break;
-                case 3://right
-                    fireEnt.init(tankEnt.x+draww/2,tankEnt.y,3);
-                    break;
-                default:break;
-            }
-            fireArr.push(fireEnt);
-            updateGameView();
-            break;
-        default:
-            break;
-    }
-};
+
+//setInterval(updateGameView,100);
+
+
 
 //碰撞检测
 function checkField(x,y){

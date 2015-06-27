@@ -8,27 +8,24 @@ var tankObj=function(){
     this.y;
     this.spd;
     this.fwd;//0:up,1:down,2:left,3:right
-    this.timer;
-
 };
 
-tankObj.prototype.init=function(_id){
+tankObj.prototype.init=function(_id,_x,_y,_fwd,_spd){
     this.id = _id;
 
-    //检查出生点是不是空的，不能在障碍物上
-    do{
-        this.x = Math.floor(Math.random()*(we-1)+1);//[1,we-1]
-        this.y = Math.floor(Math.random()*(he-1)+1);
-    }
-    while(gamingMap[this.y*we+this.x]!=0);
+    this.x=_x;
+    this.y=_y;
 
-    //变换到实际坐标位置
-    this.x=this.x*draww;
-    this.y=this.y*drawh;
+    this.fwd=_fwd;
+    this.spd=_spd;
+};
 
-    //设置speed和朝向
-    this.spd=tankSpd;
-    this.fwd=Math.floor(Math.random()*5+0);//[0,4]
+tankObj.prototype.update=function(_id,_x,_y,_fwd,_spd){
+    this.id = _id;
+    this.x=_x;
+    this.y=_y;
+    this.fwd=_fwd;
+    this.spd=_spd;
 };
 
 tankObj.prototype.initWithArg=function(_x,_y,_fwd,_id){

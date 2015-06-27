@@ -18,7 +18,8 @@
     <script type="text/javascript" src="/javascripts/fire.js"></script>
     <script type="text/javascript" src="/javascripts/main.js"></script>
 </head>
-<body onload="initGame();">
+<body>
+<!--onload="initGame();"-->
 <div id="loginbox">
     <div style="width:260px;margin:200px auto;">
         请先输入你在游戏中的昵称
@@ -37,9 +38,20 @@
         </span>
     </div>
 
+    <div>
+        现在共有<span id="allUserCnt"></span>人在房间中，已有<span id="readyUserCnt">0</span>人准备。
+    </div>
+
     <div class="canvas-wrapper">
         <canvas id="gameCanvas" width="320px" height="320px"></canvas>
+
+        <div id="waiting-msg">
+            <div>正在等待其他玩家准备就绪</div>
+            <button onclick="gameCommon.ready()">准备开始游戏</button>
+        </div>
     </div>
+
+
 </div>
 </body>
 <script>
