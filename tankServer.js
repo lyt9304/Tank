@@ -129,10 +129,10 @@ io.on('connection', function(socket){
     });
 
     socket.on("move",function(obj){
-        x=tankData[obj.username][0];
-        y=tankData[obj.username][1];
-        fwd=tankData[obj.username][2];
-        spd=tankData[obj.username][3];
+        var x=tankData[obj.username][0];
+        var y=tankData[obj.username][1];
+        var fwd=tankData[obj.username][2];
+        var spd=tankData[obj.username][3];
 
         switch (obj.keycode){
             case 37://left
@@ -159,28 +159,16 @@ io.on('connection', function(socket){
                     y+=spd;
                 }
                 break;
-            //case 32://space fire
-            //    //生成一个炮弹，放到维护的数组
-            //    var fireEnt = new fireObj();
-            //    //根据坦克方向生成对应方向和位置的炮弹
-            //    switch (fwd){
-            //        case 0://up
-            //            fireEnt.init(x,y-drawh/2,0);
-            //            break;
-            //        case 1://down
-            //            fireEnt.init(x,y+drawh/2,1);
-            //            break;
-            //        case 2://left
-            //            fireEnt.init(x-draww/2,y,2);
-            //            break;
-            //        case 3://right
-            //            fireEnt.init(x+draww/2,y,3);
-            //            break;
-            //        default:break;
-            //    }
-            //    fireArr.push(fireEnt);
-            //    updateGameView();
-            //    break;
+            case 32://space fire
+
+                var startx=tankData[obj.username][0];
+                var starty=tankData[obj.username][1];
+                var fwd=tankData[obj.username][2];
+
+                console.log("new fire:"+[startx,starty,fwd]);
+                io.emit('newfire',{position:[startx,starty,fwd]});
+                return;
+                break;
             default:
                 break;
         }
@@ -210,7 +198,6 @@ io.on('connection', function(socket){
             console.log(obj.username+'退出了');
         }
     });
-
 });
 
 exports.listen = function (_server) {

@@ -93,6 +93,33 @@
                 }
                 updateGameView();
             });
+
+            this.socket.on('newfire',function(_obj){
+                var x=_obj.position[0];
+                var y=_obj.position[1];
+                var fwd=_obj.position[2];
+
+                //生成一个炮弹，放到维护的数组
+                var fireEnt = new fireObj();
+                //根据坦克方向生成对应方向和位置的炮弹
+                switch (fwd){
+                    case 0://up
+                        fireEnt.init(x,y-drawh/2,0);
+                        break;
+                    case 1://down
+                        fireEnt.init(x,y+drawh/2,1);
+                        break;
+                    case 2://left
+                        fireEnt.init(x-draww/2,y,2);
+                        break;
+                    case 3://right
+                        fireEnt.init(x+draww/2,y,3);
+                        break;
+                    default:break;
+                }
+                fireArr.push(fireEnt);
+                updateGameView();
+            });
         }
     };
 

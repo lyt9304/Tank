@@ -145,24 +145,23 @@ function updateGameView(){
 
     //Step3:UpdatedTankObjs;(fwd,move);
     for(var item in tankMap){
-        console.log(item);
+        //console.log(item);
         tankMap[item].draw();
     }
 
-    console.log("after draw");
+    //console.log("after draw");
 
     //Step4:Fire;
-    //var collusion=fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
-    //for(var i=0;i<fireArr.length;i++){
-    //    if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0 && fireArr[i].live)
-    //    {
-    //        fireArr[i].move(fireArr[i].fwd);
-    //    }
-    //    else
-    //    {
-    //        fireArr[i].destroy(fireArr[i].x,fireArr[i].y);
-    //    }
-    //}
+    for(var i=0;i<fireArr.length;i++){
+        if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0 && fireArr[i].live)
+        {
+            fireArr[i].move(fireArr[i].fwd);
+        }
+        else
+        {
+            fireArr[i].destroy(fireArr[i].x,fireArr[i].y);
+        }
+    }
 
     //Step5:OtherEvent:destroy;
 }
@@ -179,9 +178,7 @@ function updateGameView(){
 }*/
 
 
-//setInterval(updateGameView,100);
-
-
+setInterval(updateGameView,100);
 
 //碰撞检测
 function checkField(x,y){
