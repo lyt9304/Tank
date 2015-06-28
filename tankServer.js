@@ -40,12 +40,12 @@ var tankData={};
 
 var tolerance=3;//偏差2px,不然碰撞检测有些太狭窄过不去
 var tankSpd=5;
-var fireSpd=1.5;
+var fireSpd=5;
 
 
 //碰撞检测
 function checkField(x,y){
-    console.log(map[Math.floor(x/draww)*we+Math.floor(y/drawh)]);
+    console.log(map[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
     if(map[Math.floor(y/drawh)*we+Math.floor(x/draww)] == 0){
         return true;
     }

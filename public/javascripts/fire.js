@@ -57,14 +57,17 @@ fireObj.prototype.move=function(_fwd){
 
 fireObj.prototype.check=function(x,y,fwd){
     switch(fwd){
-        case 0: y+=draww/2-1;break;
-        case 1: y+=draww/2+2;break;
-        case 2: x+=draww/2-2;break;
-        case 3: x+=draww/2+1;break;
+        case 0: y+=draww/2-2;break; //up
+        case 1: y+=draww/2+3;break; //down
+        case 2: x+=draww/2-2;break; //left
+        case 3: x+=draww/2+2;break; //right
         default: break;
     }
-    var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
-    return coll;
+    //var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
+    //console.log('炮弹位置方向：',x,y,fwd);
+    //console.log('映射到数组：',Math.floor(y/drawh)*we+Math.floor(x/draww));
+    //console.log('地图元素：',gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
+    return gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
 };
 
 fireObj.prototype.destroy=function(x,y){
@@ -76,7 +79,7 @@ fireObj.prototype.destroy=function(x,y){
     }
     else
     {
-        gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]=0;
+        //gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]=0;
         picNo=0;
     }
 };

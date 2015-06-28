@@ -25,7 +25,7 @@ var draww=32;//画到canvas上的宽和高
 var drawh=32;
 
 var tankSpd=5;
-var fireSpd=1.5;
+var fireSpd=5;
 
 var gamingMap=[];//当前正在玩的游戏地图
 
@@ -153,13 +153,18 @@ function updateGameView(){
 
     //Step4:Fire;
     for(var i=0;i<fireArr.length;i++){
-        if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0 && fireArr[i].live)
+        if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==1)
+        {
+            fireArr.shift();
+        }
+        else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0)
         {
             fireArr[i].move(fireArr[i].fwd);
         }
-        else
+        else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==2)
         {
             fireArr[i].destroy(fireArr[i].x,fireArr[i].y);
+            fireArr.shift();
         }
     }
 
@@ -182,7 +187,7 @@ setInterval(updateGameView,100);
 
 //碰撞检测
 function checkField(x,y){
-    console.log(gamingMap[Math.floor(x/draww)*we+Math.floor(y/drawh)]);
+    console.log(gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
     if(gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)] == 0){
         return true;
     }
