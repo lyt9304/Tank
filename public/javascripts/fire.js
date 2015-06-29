@@ -74,7 +74,7 @@ fireObj.prototype.checktank=function(x,y){
     for (var item in tankMap){
         //console.log(tankMap[item].id,tankMap[item].x,tankMap[item].y);
         if (tankMap[item].id==currentUser) {continue;}
-        if ((x+drawh/2)>=tankMap[item].x && (x+drawh/2)<=(tankMap[item].x+drawh) &&
+        if ((x+drawh/2)>=tankMap[item].x && (x+drawh/2)<=(tankMap[item].x+drawh)&&
             (y+draww/2)>=tankMap[item].y && (y+draww/2)<=(tankMap[item].y+draww)
             ) {
             console.log(tankMap[item].id);

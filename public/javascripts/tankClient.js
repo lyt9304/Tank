@@ -30,6 +30,94 @@
         ready:function(){
             this.socket.emit('ready',{username:this.username});
         },
+        initGame:function(){
+            canvas=document.getElementById("gameCanvas");
+            content=canvas.getContext("2d");
+
+            w=canvas.width;
+            h=canvas.height;
+
+            for(var item in gamingTank){
+                //根据初始信息在本地新建好坦克对象,tankMap:id-obj
+                var tankEnt=new tankObj();
+                tankEnt.init(item,gamingTank[item][0],gamingTank[item][1],gamingTank[item][2],gamingTank[item][3]);
+                tankMap[item]=tankEnt;
+                if(item == currentUser){
+                    currentTank=tankMap[item];
+                }
+            }
+            console.log(tankMap);
+            console.log(currentTank);
+        },
+
+        drawBackground:function(){
+            content.fillStyle="black";
+            content.fillRect(0,0,w,h);
+        },
+
+        drawWall:function(cx,cy){
+            content.drawImage(AllPic,wallStartx,wallStarty,cutw,cuth,cx,cy,draww,drawh);
+        },
+
+        drawBox:function(cx,cy){
+            content.drawImage(AllPic,boxStartx,boxStarty,cutw,cuth,cx,cy,draww,drawh);
+        },
+
+        drawMap:function(gameMap){
+            for(var i=0;i<he;i++){
+                for(var j=0;j<we;j++){
+                    var mapItem=gameMap[i*we+j];
+                    switch(mapItem){
+                        case 0:break;
+                        case 1:gameCommon.drawWall(j*draww,i*drawh);break;
+                        case 2:gameCommon.drawBox(j*draww,i*drawh);break;
+                        case 3:break;
+                        default:break;
+                    }
+                }
+            }
+        },
+
+        updateGameView:function(){
+            //Step1:Background;
+            gameCommon.drawBackground();
+
+            //Step2:UpdatedGamingMap;
+            gameCommon.drawMap(gamingMap);
+
+            //Step3:UpdatedTankObjs;(fwd,move);
+            for(var item in tankMap){
+                //console.log(item);
+                tankMap[item].draw();
+            }
+
+            //console.log("after draw");
+
+            //Step4:Fire;
+            for(var i=0;i<fireArr.length;i++){
+                if (fireArr[i].checktank(fireArr[i].x,fireArr[i].y)) {
+                    fireArr[i].destroy(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
+                    fireArr.splice(i,fireArr[i]);
+                    continue;
+                }
+                if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==1)
+                {
+                    fireArr[i].destroy(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
+                    fireArr.splice(i,fireArr[i]);
+                }
+                else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0)
+                {
+                    fireArr[i].move(fireArr[i].fwd);
+                }
+                else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==2)
+                {
+                    fireArr[i].destroy(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
+                    fireArr.splice(i,fireArr[i]);
+                }
+            }
+
+            //Step5:OtherEvent:destroy;
+        },
         init:function(username){
             this.username = username;
 
@@ -61,8 +149,8 @@
                 gamingMap=_obj.map;
                 gamingTank=_obj.startData;
 
-                initGame();
-                updateGameView();
+                gameCommon.initGame();
+                gameCommon.updateGameView();
             });
 
             //监听键盘事件
@@ -91,7 +179,7 @@
                         currentTank=tankMap[item];
                     }
                 }
-                updateGameView();
+                gameCommon.updateGameView();
             });
 
             this.socket.on('newfire',function(_obj){
@@ -118,11 +206,10 @@
                     default:break;
                 }
                 fireArr.push(fireEnt);
-                updateGameView();
+                gameCommon.updateGameView();
             });
         }
     };
-
 })();
 
 
