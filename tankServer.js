@@ -234,12 +234,13 @@ io.on('connection', function(socket){
 
         for(var i=0;i<_len;i++){
 
-            var x=_fileMap[i][0];
-            var y=_fileMap[i][1];
-            var fwd=fileMap[i][2];
-            var shooter=fileMap[i][3];
+            var x=_fireMap[i][0];
+            var y=_fireMap[i][1];
+            var fwd=_fireMap[i][2];
+            var shooter=_fireMap[i][3];
 
             //check Tank
+            var deleteTank="";
             for (var item in tankData){
                 //console.log(tankData[item].id,tankData[item].x,tankData[item].y);
                 if (item==shooter) {console.log("continue");continue;}
@@ -248,8 +249,13 @@ io.on('connection', function(socket){
                 ) {
                     console.log("//check Tank")
                     console.log(item);
+                    deleteTank=item;
                     io.emit('hittank',{fireIdx:i,tankId:item});
                 }
+            }
+
+            if(deleteTank){
+                delete tankData[deleteTank];
             }
 
             //check Obj
@@ -261,7 +267,7 @@ io.on('connection', function(socket){
                 default: break;
             }
 
-            var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
+            var coll=map[Math.floor(y/drawh)*we+Math.floor(x/draww)];
             var collIdx=Math.floor(y/drawh)*we+Math.floor(x/draww);
             //console.log('炮弹位置方向：',x,y,fwd);
             //console.log('映射到数组：',Math.floor(y/drawh)*we+Math.floor(x/draww));
@@ -277,6 +283,7 @@ io.on('connection', function(socket){
                     break;
                 case 2:
                     //撞到box
+                    map[collIdx]=0;
                     io.emit('hitbox',{fireIdx:i,map:map});
                     break;
                 default:break
