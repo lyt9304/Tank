@@ -32,7 +32,20 @@ var gameMap={
         1,0,0,2,0,2,0,2,0,1,
         1,0,0,0,0,0,0,0,0,1,
         1,1,1,1,1,1,1,1,1,1
+    ],
+    "2":[
+        1,1,1,1,1,1,1,1,1,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,0,0,0,0,2,0,0,0,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,0,2,0,0,0,0,2,0,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,0,2,0,0,0,0,0,0,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,1,1,1,1,1,1,1,1,1
     ]
+
 };
 
 var map=[];
@@ -96,7 +109,7 @@ io.on('connection', function(socket){
         //判断是否符合游戏开始条件:所有人都准备，并且准备人数大于等于两人
         if(readyCount==onlineCount && readyCount>=2){
             //遍历readyUser生成一些初始数据
-            map=gameMap[1];
+            map=gameMap[2];
             for(var item in readyUsers){
                 var x, y, fwd;
                 do{
@@ -114,7 +127,7 @@ io.on('connection', function(socket){
                 fwd=Math.floor(Math.random()*4+0);//[0,4]
 
                 spd=tankSpd;
-                tankData[item]=[x,y,fwd,spd];
+                tankData[item]=[x,y,fwd,spd,1];
             }
 
             console.log(readyUsers);
@@ -164,9 +177,10 @@ io.on('connection', function(socket){
                 var startx=tankData[obj.username][0];
                 var starty=tankData[obj.username][1];
                 var fwd=tankData[obj.username][2];
+                var shooter=obj.username;
 
                 console.log("new fire:"+[startx,starty,fwd]);
-                io.emit('newfire',{position:[startx,starty,fwd]});
+                io.emit('newfire',{shooter:shooter,position:[startx,starty,fwd]});
                 return;
                 break;
             default:
@@ -179,6 +193,19 @@ io.on('connection', function(socket){
         tankData[obj.username][3]=spd;
 
         io.emit('move',{nowData:tankData,map:map});
+    });
+
+    socket.on('hittank',function(obj){
+        var shooter=obj.shooter;
+        var tank=obj.tank;
+
+
+
+        //tankData[tank][4]=0;//tankData id:x,y,fwd,spd,valid
+        console.log("in hittank");
+        console.log(shooter+"hit the"+tank);
+
+        io.emit("tankdestroy",{shooter:shooter,nowData:tankData,tank:tank});
     });
 
     //监听用户退出

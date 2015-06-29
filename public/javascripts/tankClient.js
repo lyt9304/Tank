@@ -95,22 +95,30 @@
 
             //Step4:Fire;
             for(var i=0;i<fireArr.length;i++){
-                if (fireArr[i].checktank(fireArr[i].x,fireArr[i].y)) {
+                var _checktank=fireArr[i].checktank(fireArr[i].x,fireArr[i].y);
+                var _checkbox=fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
+
+                if (_checktank!="ok") {
+                    console.log("in if _checktank:"+_checktank);
+                    gameCommon.socket.emit("hittank",{shooter:fireArr[i].shooter,tank:_checktank});
                     fireArr[i].destroy(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
                     fireArr.splice(i,fireArr[i]);
                     continue;
                 }
-                if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==1)
+                if(_checkbox== -1)
                 {
                     fireArr[i].destroy(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
                     fireArr.splice(i,fireArr[i]);
+                    //needn't change
                 }
-                else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0)
+                else if(_checkbox== -2)
                 {
                     fireArr[i].move(fireArr[i].fwd);
+                    //just move
                 }
-                else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==2)
+                else
                 {
+                    gameCommon.socket.emit("hitbox",{shooter:fireArr[i].shooter,box:_checktank});
                     fireArr[i].destroy(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
                     fireArr.splice(i,fireArr[i]);
                 }
@@ -175,9 +183,6 @@
 
                 for(var item in gamingTank){
                     tankMap[item].update(item,gamingTank[item][0],gamingTank[item][1],gamingTank[item][2],gamingTank[item][3]);
-                    if(item == currentUser){
-                        currentTank=tankMap[item];
-                    }
                 }
                 gameCommon.updateGameView();
             });
@@ -186,27 +191,46 @@
                 var x=_obj.position[0];
                 var y=_obj.position[1];
                 var fwd=_obj.position[2];
+                var shooter=_obj.shooter;
 
                 //生成一个炮弹，放到维护的数组
                 var fireEnt = new fireObj();
                 //根据坦克方向生成对应方向和位置的炮弹
                 switch (fwd){
                     case 0://up
-                        fireEnt.init(x,y-drawh/2,0);
+                        fireEnt.init(x,y-drawh/2,0,shooter);
                         break;
                     case 1://down
-                        fireEnt.init(x,y+drawh/2,1);
+                        fireEnt.init(x,y+drawh/2,1,shooter);
                         break;
                     case 2://left
-                        fireEnt.init(x-draww/2,y,2);
+                        fireEnt.init(x-draww/2,y,2,shooter);
                         break;
                     case 3://right
-                        fireEnt.init(x+draww/2,y,3);
+                        fireEnt.init(x+draww/2,y,3,shooter);
                         break;
                     default:break;
                 }
                 fireArr.push(fireEnt);
                 gameCommon.updateGameView();
+            });
+
+            this.socket.on('tankdestroy',function(_obj){
+                gamingTank=_obj.nowData;
+                var shooter=_obj.shooter;
+                var desttank=_obj.tank;
+
+                console.log("in tankdestroy:"+shooter+" hit "+desttank);
+
+                if(desttank==currentUser){
+                    alert("你已经输了！");
+                }
+
+                if(shooter==currentUser){
+                    alert("你击败了"+desttank+"!");
+                }
+
+                delete tankMap[desttank];
             });
         }
     };
