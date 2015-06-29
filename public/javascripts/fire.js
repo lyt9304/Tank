@@ -3,6 +3,7 @@
  */
 var fireObj=function(){
 
+    this.shooter;
     this.startx;
     this.starty;
     this.x;
@@ -15,7 +16,7 @@ var fireObj=function(){
 };
 
 
-fireObj.prototype.init=function(_x,_y,_fwd){
+fireObj.prototype.init=function(_x,_y,_fwd,_shooter){
     //设置初始位置
     this.startx=_x;
     this.starty=_y;
@@ -28,6 +29,8 @@ fireObj.prototype.init=function(_x,_y,_fwd){
     //设置speed和朝向
     this.spd=fireSpd;
     this.fwd=_fwd;
+
+    this.shooter=_shooter;
 
     this.live=true;
     this.picNo=0;
@@ -55,34 +58,34 @@ fireObj.prototype.move=function(_fwd){
     this.draw();
 };
 
-fireObj.prototype.check=function(x,y,fwd){
-    switch(fwd){
-        case 0: x+=draww/2; y+=draww/2-2;break; //up
-        case 1: x+=draww/2; y+=draww/2+3;break; //down
-        case 2: x+=draww/2-2; y+=draww/2;break; //left
-        case 3: x+=draww/2+2; y+=draww/2;break; //right
-        default: break;
-    }
-    //var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
-    //console.log('炮弹位置方向：',x,y,fwd);
-    //console.log('映射到数组：',Math.floor(y/drawh)*we+Math.floor(x/draww));
-    //console.log('地图元素：',gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
-    return gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
-};
-
-fireObj.prototype.checktank=function(x,y){
-    for (var item in tankMap){
-        //console.log(tankMap[item].id,tankMap[item].x,tankMap[item].y);
-        if (tankMap[item].id==currentUser) {continue;}
-        if ((x+drawh/2)>=tankMap[item].x && (x+drawh/2)<=(tankMap[item].x+drawh) &&
-            (y+draww/2)>=tankMap[item].y && (y+draww/2)<=(tankMap[item].y+draww)
-            ) {
-            console.log(tankMap[item].id);
-            return true;
-        }
-    }
-    return false;
-}
+//fireObj.prototype.check=function(x,y,fwd){
+//    switch(fwd){
+//        case 0: x+=draww/2; y+=draww/2-2;break; //up
+//        case 1: x+=draww/2; y+=draww/2+3;break; //down
+//        case 2: x+=draww/2-2; y+=draww/2;break; //left
+//        case 3: x+=draww/2+2; y+=draww/2;break; //right
+//        default: break;
+//    }
+//    //var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
+//    //console.log('炮弹位置方向：',x,y,fwd);
+//    //console.log('映射到数组：',Math.floor(y/drawh)*we+Math.floor(x/draww));
+//    //console.log('地图元素：',gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
+//    return gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
+//};
+//
+//fireObj.prototype.checktank=function(x,y){
+//    for (var item in tankMap){
+//        //console.log(tankMap[item].id,tankMap[item].x,tankMap[item].y);
+//        if (tankMap[item].id==currentUser) {console.log("continue");continue;}
+//        if ((x+drawh/2)>=tankMap[item].x && (x+drawh/2)<=(tankMap[item].x+drawh)&&
+//            (y+draww/2)>=tankMap[item].y && (y+draww/2)<=(tankMap[item].y+draww)
+//            ) {
+//            console.log(tankMap[item].id);
+//            return tankMap[item].id;
+//        }
+//    }
+//    return "ok";
+//};
 
 fireObj.prototype.destroy=function(x,y,fwd){
     if (this.picNo!=3)

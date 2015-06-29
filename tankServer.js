@@ -32,7 +32,50 @@ var gameMap={
         1,0,0,2,0,2,0,2,0,1,
         1,0,0,0,0,0,0,0,0,1,
         1,1,1,1,1,1,1,1,1,1
+    ],
+    "2":[
+        1,1,1,1,1,1,1,1,1,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,0,0,0,0,2,0,0,0,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,0,2,0,0,0,0,2,0,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,0,2,0,0,0,0,0,0,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,0,0,0,0,0,0,0,0,1,
+        1,1,1,1,1,1,1,1,1,1
     ]
+
+};
+
+
+function fireCheckObj(x,y,fwd){
+    switch(fwd){
+        case 0: x+=draww/2; y+=draww/2-2;break; //up
+        case 1: x+=draww/2; y+=draww/2+3;break; //down
+        case 2: x+=draww/2-2; y+=draww/2;break; //left
+        case 3: x+=draww/2+2; y+=draww/2;break; //right
+        default: break;
+    }
+    //var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
+    //console.log('炮弹位置方向：',x,y,fwd);
+    //console.log('映射到数组：',Math.floor(y/drawh)*we+Math.floor(x/draww));
+    //console.log('地图元素：',gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
+    return gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
+};
+
+function fireCheckTank(x,y,shooter){
+    for (var item in tankData){
+        //console.log(tankData[item].id,tankData[item].x,tankData[item].y);
+        if (item==shooter) {console.log("continue");continue;}
+        if ((x+drawh/2)>=tankData[item][0] && (x+drawh/2)<=(tankData[item][0]+drawh)&&
+            (y+draww/2)>=tankData[item][1] && (y+draww/2)<=(tankData[item][1]+draww)
+            ) {
+            console.log(tankData[item].id);
+            return tankData[item].id;
+        }
+    }
+    return "ok";
 };
 
 var map=[];
@@ -96,7 +139,7 @@ io.on('connection', function(socket){
         //判断是否符合游戏开始条件:所有人都准备，并且准备人数大于等于两人
         if(readyCount==onlineCount && readyCount>=2){
             //遍历readyUser生成一些初始数据
-            map=gameMap[1];
+            map=gameMap[2];
             for(var item in readyUsers){
                 var x, y, fwd;
                 do{
@@ -114,7 +157,7 @@ io.on('connection', function(socket){
                 fwd=Math.floor(Math.random()*4+0);//[0,4]
 
                 spd=tankSpd;
-                tankData[item]=[x,y,fwd,spd];
+                tankData[item]=[x,y,fwd,spd,1];
             }
 
             console.log(readyUsers);
@@ -164,9 +207,10 @@ io.on('connection', function(socket){
                 var startx=tankData[obj.username][0];
                 var starty=tankData[obj.username][1];
                 var fwd=tankData[obj.username][2];
+                var shooter=obj.username;
 
                 console.log("new fire:"+[startx,starty,fwd]);
-                io.emit('newfire',{position:[startx,starty,fwd]});
+                io.emit('newfire',{shooter:shooter,position:[startx,starty,fwd]});
                 return;
                 break;
             default:
@@ -180,6 +224,67 @@ io.on('connection', function(socket){
 
         io.emit('move',{nowData:tankData,map:map});
     });
+
+
+    socket.on('firemove', function (obj) {
+
+        var _fireMap=obj.fireMap;
+        var _len=obj.len;
+
+
+        for(var i=0;i<_len;i++){
+
+            var x=_fileMap[i][0];
+            var y=_fileMap[i][1];
+            var fwd=fileMap[i][2];
+            var shooter=fileMap[i][3];
+
+            //check Tank
+            for (var item in tankData){
+                //console.log(tankData[item].id,tankData[item].x,tankData[item].y);
+                if (item==shooter) {console.log("continue");continue;}
+                if ((x+drawh/2)>=tankData[item][0] && (x+drawh/2)<=(tankData[item][0]+drawh)&&
+                    (y+draww/2)>=tankData[item][1] && (y+draww/2)<=(tankData[item][1]+draww)
+                ) {
+                    console.log("//check Tank")
+                    console.log(item);
+                    io.emit('hittank',{fireIdx:i,tankId:item});
+                }
+            }
+
+            //check Obj
+            switch(fwd){
+                case 0: x+=draww/2; y+=draww/2-2;break; //up
+                case 1: x+=draww/2; y+=draww/2+3;break; //down
+                case 2: x+=draww/2-2; y+=draww/2;break; //left
+                case 3: x+=draww/2+2; y+=draww/2;break; //right
+                default: break;
+            }
+
+            var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
+            var collIdx=Math.floor(y/drawh)*we+Math.floor(x/draww);
+            //console.log('炮弹位置方向：',x,y,fwd);
+            //console.log('映射到数组：',Math.floor(y/drawh)*we+Math.floor(x/draww));
+            //console.log('地图元素：',gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
+
+            switch(coll){
+                case 0:
+                    //检测通过,不处理
+                    break;
+                case 1:
+                    //撞到墙壁
+                    io.emit('hitwall',{fireIdx:i});
+                    break;
+                case 2:
+                    //撞到box
+                    io.emit('hitbox',{fireIdx:i,map:map});
+                    break;
+                default:break
+            }
+
+        }
+    });
+
 
     //监听用户退出
     socket.on('disconnect', function(){
