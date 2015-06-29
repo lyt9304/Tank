@@ -72,15 +72,15 @@
                     return;
                 }
                 e = event || window.event || arguments.callee.caller.arguments[0];
-                console.log("key:"+ e.keyCode);
+                //console.log("key:"+ e.keyCode);
 
                 gameCommon.socket.emit('move',{username:username,keycode:e.keyCode});
             };
 
             this.socket.on('move',function(_obj){
 
-                console.log("in client");
-                console.log(_obj);
+                //console.log("in client");
+                //console.log(_obj);
 
                 gamingMap=_obj.map;
                 gamingTank=_obj.nowData;
@@ -102,7 +102,6 @@
                 //生成一个炮弹，放到维护的数组
                 var fireEnt = new fireObj();
                 //根据坦克方向生成对应方向和位置的炮弹
-                console.log(x/draww,y/drawh);
                 switch (fwd){
                     case 0://up
                         fireEnt.init(x,y-drawh/2,0);

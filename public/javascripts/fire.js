@@ -57,10 +57,10 @@ fireObj.prototype.move=function(_fwd){
 
 fireObj.prototype.check=function(x,y,fwd){
     switch(fwd){
-        case 0: y+=draww/2-2;break; //up
-        case 1: y+=draww/2+3;break; //down
-        case 2: x+=draww/2-2;break; //left
-        case 3: x+=draww/2+2;break; //right
+        case 0: x+=draww/2; y+=draww/2-2;break; //up
+        case 1: x+=draww/2; y+=draww/2+3;break; //down
+        case 2: x+=draww/2-2; y+=draww/2;break; //left
+        case 3: x+=draww/2+2; y+=draww/2;break; //right
         default: break;
     }
     //var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
@@ -70,16 +70,33 @@ fireObj.prototype.check=function(x,y,fwd){
     return gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
 };
 
-fireObj.prototype.destroy=function(x,y){
+fireObj.prototype.checktank=function(x,y){
+    for (var item in tankMap){
+        //console.log(tankMap[item].id,tankMap[item].x,tankMap[item].y);
+        if (tankMap[item].id==currentUser) {continue;}
+        if ((x+drawh/2)>=tankMap[item].x && (x+drawh/2)<=(tankMap[item].x+drawh) &&
+            (y+draww/2)>=tankMap[item].y && (y+draww/2)<=(tankMap[item].y+draww)
+            ) {
+            console.log(tankMap[item].id);
+            return true;
+        }
+    }
+    return false;
+}
+
+fireObj.prototype.destroy=function(x,y,fwd){
     if (this.picNo!=3)
     {
         this.picNo += 1;
         content.drawImage(AllPic,this.picNo*32,64,cutw,cuth,x,y,draww,drawh);
-        this.live=false;
     }
     else
     {
-        //gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]=0;
+        //改变地图元素
+        //上 Math.floor(fireArr[i].y/drawh+0.5)*we+Math.floor(fireArr[i].x/draww+0.5)
+        //下 Math.floor(fireArr[i].y/drawh+1.0)*we+Math.floor(fireArr[i].x/draww+0.5)
+        //左 Math.floor(fireArr[i].y/drawh+0.5)*we+Math.floor(fireArr[i].x/draww+0.0)
+        //右 Math.floor(fireArr[i].y/drawh+0.5)*we+Math.floor(fireArr[i].x/draww+1.0)
         picNo=0;
     }
 };

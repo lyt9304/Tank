@@ -153,9 +153,14 @@ function updateGameView(){
 
     //Step4:Fire;
     for(var i=0;i<fireArr.length;i++){
+        if (fireArr[i].checktank(fireArr[i].x,fireArr[i].y)) {
+            fireArr[i].destroy(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
+            fireArr.splice(i,fireArr[i]);
+            continue;
+        }
         if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==1)
         {
-            fireArr.shift();
+            fireArr.splice(i,fireArr[i]);
         }
         else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==0)
         {
@@ -163,26 +168,22 @@ function updateGameView(){
         }
         else if(fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd)==2)
         {
-            fireArr[i].destroy(fireArr[i].x,fireArr[i].y);
-            fireArr.shift();
+            fireArr[i].destroy(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
+            //更改地图元素
+            /*switch(fireArr[i].fwd){
+                case 0:console.log(Math.floor(fireArr[i].y/drawh+0.5)*we+Math.floor(fireArr[i].x/draww+0.5));break;//上
+                case 1:console.log(Math.floor(fireArr[i].y/drawh+1.0)*we+Math.floor(fireArr[i].x/draww+0.5));break;//下
+                case 2:console.log(Math.floor(fireArr[i].y/drawh+0.5)*we+Math.floor(fireArr[i].x/draww+0.0));break;//左
+                case 3:console.log(Math.floor(fireArr[i].y/drawh+0.5)*we+Math.floor(fireArr[i].x/draww+1.0));break;//右
+            }*/
+            //console.log(fireArr[i].y/drawh,fireArr[i].x/draww);
+            //console.log(Math.floor(fireArr[i].y/drawh+0.5)*we+Math.floor(fireArr[i].x/draww+0.5));
+            fireArr.splice(i,fireArr[i]);
         }
     }
 
     //Step5:OtherEvent:destroy;
 }
-
-//时间触发的，用于绘制子弹
-/*function timelyUpdateGameView(){
-    drawMap(gamingMap);
-    tankEnt.draw();
-    var collusion=fireArr[i].check(fireArr[i].x,fireArr[i].y,fireArr[i].fwd);
-    for(var i=0;i<fireArr.length;i++){
-        if(collusion==0)
-           fireArr[i].move(fireArr[i].fwd);
-    }
-}*/
-
-
 setInterval(updateGameView,100);
 
 //碰撞检测
