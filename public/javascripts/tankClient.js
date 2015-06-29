@@ -201,29 +201,37 @@
                 var _fireIdx=_obj.fireIdx;
                 var _tankId=_obj.tankId;
 
-                console.log("in tankdestroy:"+fireArr[_fireIdx]+" hit "+_tankId);
+                var _shooter=fireArr[_fireIdx].shooter;
 
-                delete tankMap[tankId];
+                console.log("in tankdestroy:"+fireArr[_fireIdx].shooter+" hit "+_tankId);
+
+                delete tankMap[_tankId];
                 fireArr[_fireIdx].destroy(fireArr[_fireIdx].x,fireArr[_fireIdx].y,fireArr[_fireIdx].fwd);
                 fireArr.splice(_fireIdx,1);
 
-                if(tankId==currentUser){
+
+                if(_tankId==currentUser){
                     alert("你已经输了！");
                     return;
                 }
 
-                if(fireArr[_fireIdx]==currentUser){
-                    alert("你击败了"+tankId+"!");
+                if(_shooter==currentUser){
+                    alert("你击败了"+_tankId+"!");
                     return;
                 }
             });
 
             this.socket.on('hitbox',function(_obj){
-
+                gamingMap=_obj.map
+                var _fireIdx=_obj.fireIdx;
+                fireArr[_fireIdx].destroy(fireArr[_fireIdx].x,fireArr[_fireIdx].y,fireArr[_fireIdx].fwd);
+                fireArr.splice(_fireIdx,1);
             });
 
             this.socket.on('hitwall',function(_obj){
-
+                var _fireIdx=_obj.fireIdx;
+                fireArr[_fireIdx].destroy(fireArr[_fireIdx].x,fireArr[_fireIdx].y,fireArr[_fireIdx].fwd);
+                fireArr.splice(_fireIdx,1);
             });
 
 
