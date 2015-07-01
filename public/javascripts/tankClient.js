@@ -74,6 +74,7 @@
                 }
                 $("#allUserCnt").text(_obj.onlineCount);
                 $("#readyUserCnt").text(_obj.readyCount);
+                gameCommon.updateSortPoint(_obj.sortResult);
             });
 
             this.socket.on('nouser',function(_obj){
@@ -121,8 +122,6 @@
                     currentTank=tankMap[item];
                 }
             }
-            console.log(tankMap);
-            console.log(currentTank);
         },
 
         drawBackground:function(){
@@ -163,7 +162,9 @@
             //Step3:UpdatedTankObjs;(fwd,move);
             for(var item in tankMap){
                 //console.log(item);
-                tankMap[item].draw();
+                if(tankMap[item].live==true){
+                    tankMap[item].draw();
+                }
             }
 
             //console.log("after draw");
@@ -171,7 +172,7 @@
             //Step4:Fire;
             for(var i=0;i<fireArr.length;i++) {
                 fireArr[i].move(fireArr[i].fwd);
-                fireMap[i] = [fireArr[i].x, fireArr[i].y, fireArr[i].fwd, fireArr.shooter];
+                fireMap[i] = [fireArr[i].x, fireArr[i].y, fireArr[i].fwd, fireArr[i].shooter];
             }
 
             gameCommon.socket.emit("firemove", {fireMap:fireMap,len:fireArr.length});
@@ -179,6 +180,27 @@
 
 
             //Step5:OtherEvent:destroy;
+        },
+        updatePoint:function(){
+            $("#now-point").html("");
+            var htmlstr="";
+            for(var item in tankMap){
+                tankMap[item].point=gamingTank[item][5];
+                htmlstr+="<div>"+item+" 得分："+tankMap[item].point+"</div>";
+            }
+            $("#now-point").html(htmlstr);
+        },
+        updateSortPoint:function(arr){
+            $("#high-score").html("");
+            var htmlstr="";
+            for(var i=0;i<10;i++){
+                if(i<arr.length){
+                    htmlstr+="<div>第"+(i+1)+"名："+arr[i].user+" 得分："+arr[i].score+"</div>";
+                }else{
+                    htmlstr+="<div>第"+(i+1)+"名：--- 得分：---</div>";
+                }
+            }
+            $("#high-score").html(htmlstr);
         },
         init:function(username){
             this.username = username;
@@ -274,10 +296,13 @@
 
                 console.log("in tankdestroy:"+fireArr[_fireIdx].shooter+" hit "+_tankId);
 
-                delete tankMap[_tankId];
+                tankMap[_tankId].live=false;
                 fireArr[_fireIdx].destroy(fireArr[_fireIdx].x,fireArr[_fireIdx].y,fireArr[_fireIdx].fwd);
                 fireArr.splice(_fireIdx,1);
 
+
+                gamingTank=_obj.nowData;
+                gameCommon.updatePoint();
 
                 if(_tankId==currentUser){
                     alert("你已经输了！");
@@ -294,6 +319,10 @@
 
             this.socket.on("end",function(_obj){
                 gameStartFlag=false;
+                gamingTank=_obj.nowData;
+                gameCommon.updatePoint();
+                gameCommon.updateSortPoint(_obj.sortResult);
+
                 $("#gameCanvas").hide();
                 $("#game-result").show();
                 $("#winner").text(_obj.winner);
@@ -303,6 +332,8 @@
 
             this.socket.on('hitbox',function(_obj){
                 gamingMap=_obj.map;
+                gamingTank=_obj.nowData;
+                gameCommon.updatePoint();
                 var _fireIdx=_obj.fireIdx;
                 fireArr[_fireIdx].destroy(fireArr[_fireIdx].x,fireArr[_fireIdx].y,fireArr[_fireIdx].fwd);
                 fireArr.splice(_fireIdx,1);

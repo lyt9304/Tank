@@ -3,11 +3,13 @@
  */
 var tankObj=function(){
 
+    this.point;
     this.id;
     this.x;
     this.y;
     this.spd;
     this.fwd;//0:up,1:down,2:left,3:right
+    this.live;
 };
 
 tankObj.prototype.init=function(_id,_x,_y,_fwd,_spd){
@@ -18,6 +20,8 @@ tankObj.prototype.init=function(_id,_x,_y,_fwd,_spd){
 
     this.fwd=_fwd;
     this.spd=_spd;
+    this.point=0;
+    this.live=true;
 };
 
 tankObj.prototype.update=function(_id,_x,_y,_fwd,_spd){
@@ -26,14 +30,6 @@ tankObj.prototype.update=function(_id,_x,_y,_fwd,_spd){
     this.y=_y;
     this.fwd=_fwd;
     this.spd=_spd;
-};
-
-tankObj.prototype.initWithArg=function(_x,_y,_fwd,_id){
-    this.x=_x;
-    this.y=_y;
-    this.fwd=_fwd;
-    this.id=_id;
-    this.spd=tankSpd;
 };
 
 tankObj.prototype.draw=function(){

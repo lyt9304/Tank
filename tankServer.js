@@ -139,7 +139,7 @@ io.on('connection', function(socket){
                 }
 
                 //向所有客户端广播用户加入
-                io.emit('login', {onlineCount:onlineCount,readyCount:readyCount,user:user});
+                io.emit('login', {onlineCount:onlineCount,readyCount:readyCount,user:user,sortResult:sortResult});
                 console.log(obj.username+'加入了游戏');
             }else{
                 if(res==null){
@@ -167,7 +167,7 @@ io.on('connection', function(socket){
         //判断是否符合游戏开始条件:所有人都准备，并且准备人数大于等于两人
         if(readyCount==onlineCount && readyCount>=2){
             //遍历readyUser生成一些初始数据
-            map=gameMap[2];
+            map=gameMap[2].slice(0);
             for(var item in readyUsers){
                 var x, y, fwd;
                 do{
@@ -245,7 +245,7 @@ io.on('connection', function(socket){
                 var fwd=tankData[obj.username][2];
                 var shooter=obj.username;
 
-                console.log("new fire:"+[startx,starty,fwd]);
+                console.log("new fire:"+[startx,starty,fwd]+"shooter:"+shooter);
                 io.emit('newfire',{shooter:shooter,position:[startx,starty,fwd]});
                 return;
                 break;
@@ -268,43 +268,88 @@ io.on('connection', function(socket){
         var _len=obj.len;
 
 
-        for(var i=0;i<_len;i++){
+        for(var i=0;i<_len;i++) {
 
-            var x=_fireMap[i][0];
-            var y=_fireMap[i][1];
-            var fwd=_fireMap[i][2];
-            var shooter=_fireMap[i][3];
+            var x = _fireMap[i][0];
+            var y = _fireMap[i][1];
+            var fwd = _fireMap[i][2];
+            var shooter = _fireMap[i][3];
+
+            console.log("in firemove shooter:" + shooter);
 
             //check Tank
-            for (var item in tankData){
+            for (var item in tankData) {
                 //console.log(tankData[item].id,tankData[item].x,tankData[item].y);
-                if (item==shooter) {console.log("continue");continue;}
-                console.log("item:"+item);
+                if (item == shooter) {
+                    console.log("continue");
+                    continue;
+                }
+                console.log("item:" + item);
                 console.log(tankData[item]);
-                if ((x+drawh/2)>=tankData[item][0] && (x+drawh/2)<=(tankData[item][0]+drawh)&&
-                    (y+draww/2)>=tankData[item][1] && (y+draww/2)<=(tankData[item][1]+draww)&&tankData[item][4]!=0
-                ) {
+                if ((x + drawh / 2) >= tankData[item][0] && (x + drawh / 2) <= (tankData[item][0] + drawh) &&
+                    (y + draww / 2) >= tankData[item][1] && (y + draww / 2) <= (tankData[item][1] + draww) && tankData[item][4] != 0) {
                     console.log("//check Tank");
                     console.log(item);
                     destTankCnt++;
-                    tankData[item][4]=0;
-                    tankData[shooter][5]+=100;
-                    io.emit('hittank',{fireIdx:i,tankId:item,nowData:tankData});
-                    if(destTankCnt==(readyCount-1)){
+                    tankData[item][4] = 0;
+                    tankData[shooter][5] += 100;
+                    console.log("in hit tank:shooter:" + shooter);
+                    console.log("tankData[shooter]:" + tankData[shooter]);
+                    io.emit('hittank', {fireIdx: i, tankId: item, nowData: tankData});
+                    if (destTankCnt == (readyCount - 1)) {
                         var winner;
-                        for(var witem in tankData){
-                            if(tankData[witem][4]==1){
-                                winner=witem;
+                        for (var witem in tankData) {
+                            if (tankData[witem][4] == 1) {
+                                winner = witem;
                             }
                         }
                         //清除相关的游戏数据，map，tankData readyUsers，readyCount，destTankCnt
-                        map=[];
-                        tankData={};
-                        readyUsers={};
-                        readyCount=0;
-                        destTankCnt=0;
-                        tankData[winner][5]+=200;
-                        io.emit("end",{winner:winner,onlineCount:onlineCount,readyCount:readyCount,nowData:tankData});
+                        tankData[winner][5] += 200;
+                        readyUsers = {};
+                        readyCount = 0;
+
+                        var res = [];
+                        for (var sitem in tankData) {
+                            res.push({user: sitem, score: tankData[sitem][5]});
+                        }
+                        res=res.concat(sortResult);
+                        res.sort(function (a, b) {
+                            return a.score < b.score ? 1 : -1;
+                        });
+
+                        console.log("res:"+res);
+
+                        //取前十
+                        if (res.length <= 10) {
+                            sortResult=res;
+                        }
+                        else {
+                            sortResult=res.slice(0,10);
+                        }
+                        console.log("sortResult:"+sortResult);
+
+                        var conditions={index:1};
+                        var update={$set : {record:res}};
+                        sortTable.update(conditions,update,{},function(err){
+                            if(err) {
+                                console.log(error);
+                            } else {
+                                console.log('update ok!');
+                            }
+                        });
+
+                        io.emit("end", {
+                            winner: winner,
+                            onlineCount: onlineCount,
+                            readyCount: readyCount,
+                            nowData: tankData,
+                            sortResult:sortResult
+                        });
+
+
+                        map = [];
+                        tankData = {};
+                        destTankCnt = 0;
                         return;
                     }
                 }
@@ -312,37 +357,52 @@ io.on('connection', function(socket){
 
 
             //check Obj
-            switch(fwd){
-                case 0: x+=draww/2; y+=draww/2-2;break; //up
-                case 1: x+=draww/2; y+=draww/2+3;break; //down
-                case 2: x+=draww/2-2; y+=draww/2;break; //left
-                case 3: x+=draww/2+2; y+=draww/2;break; //right
-                default: break;
+            switch (fwd) {
+                case 0:
+                    x += draww / 2;
+                    y += draww / 2 - 2;
+                    break; //up
+                case 1:
+                    x += draww / 2;
+                    y += draww / 2 + 3;
+                    break; //down
+                case 2:
+                    x += draww / 2 - 2;
+                    y += draww / 2;
+                    break; //left
+                case 3:
+                    x += draww / 2 + 2;
+                    y += draww / 2;
+                    break; //right
+                default:
+                    break;
             }
 
-            var coll=map[Math.floor(y/drawh)*we+Math.floor(x/draww)];
-            var collIdx=Math.floor(y/drawh)*we+Math.floor(x/draww);
+            var coll = map[Math.floor(y / drawh) * we + Math.floor(x / draww)];
+            var collIdx = Math.floor(y / drawh) * we + Math.floor(x / draww);
             //console.log('炮弹位置方向：',x,y,fwd);
             //console.log('映射到数组：',Math.floor(y/drawh)*we+Math.floor(x/draww));
             //console.log('地图元素：',gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
 
-            switch(coll){
+            switch (coll) {
                 case 0:
                     //检测通过,不处理
                     break;
                 case 1:
                     //撞到墙壁
-                    io.emit('hitwall',{fireIdx:i,nowData:tankData});
+                    io.emit('hitwall', {fireIdx: i, nowData: tankData});
                     break;
                 case 2:
                     //撞到box
-                    map[collIdx]=0;
-                    tankData[shooter][5]+=50;
-                    io.emit('hitbox',{fireIdx:i,map:map,nowData:tankData});
+                    map[collIdx] = 0;
+                    console.log("in hit box:shooter:" + shooter);
+                    console.log("tankData[shooter]:" + tankData[shooter]);
+                    tankData[shooter][5] += 50;
+                    io.emit('hitbox', {fireIdx: i, map: map, nowData: tankData});
                     break;
-                default:break
+                default:
+                    break
             }
-
         }
     });
 

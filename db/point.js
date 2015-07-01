@@ -7,7 +7,7 @@ var mongoose = require('mongoose');
 // Schema 结构
 var mongooseSchema = new mongoose.Schema({
     index : {type : Number},
-    record: {type : Mixed}
+    record: {type : mongoose.Schema.Types.Mixed}
 });
 
 mongooseSchema.statics.findbyindex = function(index, callback) {
