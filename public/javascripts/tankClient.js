@@ -16,19 +16,94 @@
             location.reload();
         },
 
+        registerSubmit:function(){
+            var user=$("#reg-username").val();
+            var password=$("#reg-password").val();
+
+            this.socket = io.connect('localhost:3000');
+
+            if(password && user){
+
+                this.socket.emit("register",{user:user,pw:password});
+                this.socket.on("registersuccess",function(_obj){
+                    if(_obj.user==user){
+                        alert("注册成功！");
+                        location.reload();
+                    }else{
+                        return;
+                    }
+                });
+                this.socket.on("dupregister",function(_obj){
+                    if(_obj.user==user){
+                        alert("用户名已存在！");
+                    }else{
+                        return;
+                    }
+                })
+            }
+            else{
+                alert("请输入用户名和密码！");
+            }
+        },
+
         //第一个界面用户提交用户名
         usernameSubmit:function(){
-            var username = $("#username").val();
-            if(username != ""){
-                $("#username").val("");
-                $("#loginbox").hide();
-                $("#playbox").show();
-                this.init(username);
+            var user = $("#username").val();
+            var password = $("#password").val();
+
+            //连接websocket后端服务器
+            this.socket = io.connect('localhost:3000');
+
+            //告诉服务器端有用户登录
+            if(user && password){
+                this.socket.emit('login', {username:user,password:password});
             }
+            else{
+                alert("请输入用户名和密码！");
+            }
+
+
+            //收到有用户加入信息
+            this.socket.on('login',function(_obj){
+                if(_obj.user==user){
+                    $("#username").val("");
+                    $("#loginbox").hide();
+                    $("#dialog-register").hide();
+                    $("#playbox").show();
+                    gameCommon.init(user);
+                }
+                $("#allUserCnt").text(_obj.onlineCount);
+                $("#readyUserCnt").text(_obj.readyCount);
+            });
+
+            this.socket.on('nouser',function(_obj){
+                if(_obj.user==user){
+                    alert("没有该用户");
+                }
+            });
+
+            this.socket.on('pwwrong',function(_obj){
+                alert("密码错误");
+            });
+
             return false;
+        },
+        restart:function(){
+            this.socket.emit('ready',{username:this.username});
+            $("#game-result").hide();
+            $("#waiting-msg").show();
+            $("#btn-ready").hide();
+            $("#btn-unready").show();
         },
         ready:function(){
             this.socket.emit('ready',{username:this.username});
+            $("#btn-ready").hide();
+            $("#btn-unready").show();
+        },
+        unready:function(){
+            this.socket.emit('unready',{username:this.username});
+            $("#btn-ready").show();
+            $("#btn-unready").hide();
         },
         initGame:function(){
             canvas=document.getElementById("gameCanvas");
@@ -110,26 +185,19 @@
 
             $("#showusername").html(this.username);
 
-            //连接websocket后端服务器
-            this.socket = io.connect('localhost:3000');
-
-            //告诉服务器端有用户登录
-            this.socket.emit('login', {username:this.username});
-
-            //收到有用户加入信息
-            this.socket.on('login',function(_obj){
-                $("#allUserCnt").text(_obj.onlineCount);
-                $("#readyUserCnt").text(_obj.readyCount);
-            });
-
             this.socket.on('ready',function(_obj){
                $("#readyUserCnt").text(_obj.readyCount);
+            });
+
+            this.socket.on('unready',function(_obj){
+                $("#readyUserCnt").text(_obj.readyCount);
             });
 
             this.socket.on('start', function (_obj) {
                 gameStartFlag=true;
                 console.log("gameStartFlag=true");
-                $("waiting-msg").hide();
+                $("#gameCanvas").show();
+                $("#waiting-msg").hide();
 
 
                 currentUser=username;
@@ -143,13 +211,15 @@
             //监听键盘事件
             //37:left 38:up 39:right 40:down space:32
             document.onkeydown=function(e){
+                console.log("gameStartFlag:"+gameStartFlag);
                 if(gameStartFlag==false){
                     return;
                 }
                 e = event || window.event || arguments.callee.caller.arguments[0];
                 //console.log("key:"+ e.keyCode);
-
-                gameCommon.socket.emit('move',{username:username,keycode:e.keyCode});
+                if(e.keyCode==37|| e.keyCode==38|| e.keyCode==39|| e.keyCode==40|| e.keyCode==32){
+                    gameCommon.socket.emit('move',{username:username,keycode:e.keyCode});
+                }
             };
 
             this.socket.on('move',function(_obj){
@@ -195,7 +265,6 @@
             });
 
 
-
             this.socket.on('hittank',function(_obj){
 
                 var _fireIdx=_obj.fireIdx;
@@ -212,17 +281,28 @@
 
                 if(_tankId==currentUser){
                     alert("你已经输了！");
+                    gameStartFlag=false;
+                    $("#gameCanvas").hide();
                     return;
                 }
 
                 if(_shooter==currentUser){
-                    alert("你击败了"+_tankId+"!");
+                    //alert("你击败了"+_tankId+"!");
                     return;
                 }
             });
 
+            this.socket.on("end",function(_obj){
+                gameStartFlag=false;
+                $("#gameCanvas").hide();
+                $("#game-result").show();
+                $("#winner").text(_obj.winner);
+                $("#allUserCnt").text(_obj.onlineCount);
+                $("#readyUserCnt").text(_obj.readyCount);
+            });
+
             this.socket.on('hitbox',function(_obj){
-                gamingMap=_obj.map
+                gamingMap=_obj.map;
                 var _fireIdx=_obj.fireIdx;
                 fireArr[_fireIdx].destroy(fireArr[_fireIdx].x,fireArr[_fireIdx].y,fireArr[_fireIdx].fwd);
                 fireArr.splice(_fireIdx,1);

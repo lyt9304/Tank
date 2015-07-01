@@ -2,6 +2,26 @@
  * Created by lyt9304 on 15/5/31.
  */
 var io = require('socket.io')();
+var userTable=require('./db/user');
+var sortTable=require('./db/point');
+var sortResult;
+
+sortTable.findbyindex(1,function(err,res){
+    console.log("sortTable");
+    if(res!=null){
+        sortResult=res.record;
+        console.log(sortResult);
+    }else{
+        sortTable.create({index:1,record:[]},function(){
+            console.log("Create a new sort record");
+        });
+    }
+});
+
+//加分规则：
+//清除障碍物20分，
+//击沉坦克100分，
+//活到最后200分
 
 //在线用户
 var onlineUsers = {};
@@ -12,6 +32,7 @@ var onlineCount = 0;
 var readyUsers={};
 var readyCount=0;
 
+var destTankCnt=0;
 
 var we=10;//canvas可以容下的宽度的数量和长度的数量
 var he=10;
@@ -48,36 +69,6 @@ var gameMap={
 
 };
 
-
-function fireCheckObj(x,y,fwd){
-    switch(fwd){
-        case 0: x+=draww/2; y+=draww/2-2;break; //up
-        case 1: x+=draww/2; y+=draww/2+3;break; //down
-        case 2: x+=draww/2-2; y+=draww/2;break; //left
-        case 3: x+=draww/2+2; y+=draww/2;break; //right
-        default: break;
-    }
-    //var coll=gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
-    //console.log('炮弹位置方向：',x,y,fwd);
-    //console.log('映射到数组：',Math.floor(y/drawh)*we+Math.floor(x/draww));
-    //console.log('地图元素：',gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)]);
-    return gamingMap[Math.floor(y/drawh)*we+Math.floor(x/draww)];
-};
-
-function fireCheckTank(x,y,shooter){
-    for (var item in tankData){
-        //console.log(tankData[item].id,tankData[item].x,tankData[item].y);
-        if (item==shooter) {console.log("continue");continue;}
-        if ((x+drawh/2)>=tankData[item][0] && (x+drawh/2)<=(tankData[item][0]+drawh)&&
-            (y+draww/2)>=tankData[item][1] && (y+draww/2)<=(tankData[item][1]+draww)
-            ) {
-            console.log(tankData[item].id);
-            return tankData[item].id;
-        }
-    }
-    return "ok";
-};
-
 var map=[];
 var tankData={};
 
@@ -108,23 +99,60 @@ function printMap(x,y,map){
 }
 
 io.on('connection', function(socket){
-    console.log('a user connected');
+
+    socket.on('register',function(obj){
+        var user=obj.user;
+        var password=obj.pw;
+
+        var pair={uid:user,pw:password};
+
+        userTable.findbyuser(user,function(err,res){
+            console.log("res:"+res);
+           if(res==null){
+               console.log("create!");
+               userTable.create(pair,function(){
+                   io.emit('registersuccess',{user:user});
+               });
+           }else{
+               console.log("dupregister!");
+               io.emit("dupregister",{user:user});
+           }
+        });
+    });
+
 
     //监听新用户加入
     socket.on('login', function(obj){
         //将新加入用户的唯一标识当作socket的名称，后面退出的时候会用到
-        socket.name = obj.username;
+        var user=obj.username;
+        var password=obj.password;
 
-        //检查在线列表，如果不在里面就加入
-        if(!onlineUsers.hasOwnProperty(obj.username)) {
-            onlineUsers[obj.username] = obj.username;
-            //在线人数+1
-            onlineCount++;
-        }
+        userTable.findbyuser(user,function(err,res){
+            if(res!=null && res.pw==password){
+                socket.name = obj.username;
 
-        //向所有客户端广播用户加入
-        io.emit('login', {onlineCount:onlineCount,readyCount:readyCount,user:obj});
-        console.log(obj.username+'加入了游戏');
+                //检查在线列表，如果不在里面就加入
+                if(!onlineUsers.hasOwnProperty(obj.username)) {
+                    onlineUsers[obj.username] = obj.username;
+                    //在线人数+1
+                    onlineCount++;
+                }
+
+                //向所有客户端广播用户加入
+                io.emit('login', {onlineCount:onlineCount,readyCount:readyCount,user:user});
+                console.log(obj.username+'加入了游戏');
+            }else{
+                if(res==null){
+                    io.emit("nouser",{user:user});
+                    return;
+                }
+
+                if(res.pw!=password){
+                    io.emit("pwwrong",{user:user});
+                    return;
+                }
+            }
+        });
     });
 
 
@@ -157,7 +185,7 @@ io.on('connection', function(socket){
                 fwd=Math.floor(Math.random()*4+0);//[0,4]
 
                 spd=tankSpd;
-                tankData[item]=[x,y,fwd,spd,1];
+                tankData[item]=[x,y,fwd,spd,1,0];
             }
 
             console.log(readyUsers);
@@ -168,10 +196,18 @@ io.on('connection', function(socket){
             io.emit('start',{startData:tankData,map:map});
         }
         io.emit('ready',{readyCount:readyCount,user:obj});
+    });
 
+    socket.on('unready',function(obj){
+        if(readyUsers.hasOwnProperty(obj.username)){
+            delete readyUsers[obj.username];
+            readyCount--;
+        }
+        io.emit('unready',{readyCount:readyCount,user:obj.username});
     });
 
     socket.on("move",function(obj){
+        console.log("move:"+obj.username+" "+obj.keycode);
         var x=tankData[obj.username][0];
         var y=tankData[obj.username][1];
         var fwd=tankData[obj.username][2];
@@ -240,23 +276,40 @@ io.on('connection', function(socket){
             var shooter=_fireMap[i][3];
 
             //check Tank
-            var deleteTank="";
             for (var item in tankData){
                 //console.log(tankData[item].id,tankData[item].x,tankData[item].y);
                 if (item==shooter) {console.log("continue");continue;}
+                console.log("item:"+item);
+                console.log(tankData[item]);
                 if ((x+drawh/2)>=tankData[item][0] && (x+drawh/2)<=(tankData[item][0]+drawh)&&
-                    (y+draww/2)>=tankData[item][1] && (y+draww/2)<=(tankData[item][1]+draww)
+                    (y+draww/2)>=tankData[item][1] && (y+draww/2)<=(tankData[item][1]+draww)&&tankData[item][4]!=0
                 ) {
-                    console.log("//check Tank")
+                    console.log("//check Tank");
                     console.log(item);
-                    deleteTank=item;
-                    io.emit('hittank',{fireIdx:i,tankId:item});
+                    destTankCnt++;
+                    tankData[item][4]=0;
+                    tankData[shooter][5]+=100;
+                    io.emit('hittank',{fireIdx:i,tankId:item,nowData:tankData});
+                    if(destTankCnt==(readyCount-1)){
+                        var winner;
+                        for(var witem in tankData){
+                            if(tankData[witem][4]==1){
+                                winner=witem;
+                            }
+                        }
+                        //清除相关的游戏数据，map，tankData readyUsers，readyCount，destTankCnt
+                        map=[];
+                        tankData={};
+                        readyUsers={};
+                        readyCount=0;
+                        destTankCnt=0;
+                        tankData[winner][5]+=200;
+                        io.emit("end",{winner:winner,onlineCount:onlineCount,readyCount:readyCount,nowData:tankData});
+                        return;
+                    }
                 }
             }
 
-            if(deleteTank){
-                delete tankData[deleteTank];
-            }
 
             //check Obj
             switch(fwd){
@@ -279,12 +332,13 @@ io.on('connection', function(socket){
                     break;
                 case 1:
                     //撞到墙壁
-                    io.emit('hitwall',{fireIdx:i});
+                    io.emit('hitwall',{fireIdx:i,nowData:tankData});
                     break;
                 case 2:
                     //撞到box
                     map[collIdx]=0;
-                    io.emit('hitbox',{fireIdx:i,map:map});
+                    tankData[shooter][5]+=50;
+                    io.emit('hitbox',{fireIdx:i,map:map,nowData:tankData});
                     break;
                 default:break
             }
@@ -302,8 +356,14 @@ io.on('connection', function(socket){
 
             //删除
             delete onlineUsers[socket.name];
+
             //在线人数-1
             onlineCount--;
+
+            if(readyUsers.hasOwnProperty(socket.name)){
+                delete readyUsers[socket.name];
+                readyCount--;
+            }
 
             //向所有客户端广播用户退出
             io.emit('logout', {onlineUsers:onlineUsers, onlineCount:onlineCount, user:obj});
