@@ -1,16 +1,22 @@
-.navbar{
-    background:#3d3d3d;
-    height: 40px;
-    width: 100%;
-    font-size:12px;
+.body {
+    background-image: url(../images/1.jpg);
+    background-size: cover;
 }
 
+/*.navbar{
+    background:#3d3d3d;
+    height: 60px;
+    width: 100%;
+    font-size:20px;
+}*/
 .navbar-info{
     float:right;
-    margin-right:10px;
+    margin-right:20px;
+    margin-top:10px;
     color:#fff;
+    font-size:20px;
 }
 
 .canvas-wrapper{
-    margin:100px 200px;
+    margin:20px 200px;
 }

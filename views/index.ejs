@@ -8,80 +8,123 @@
     <title>坦克大战</title>
 
     <link rel="stylesheet" type="text/css" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
 
     <!--[if lt IE 8]><script src="http://cdn.bootcss.com/json3/3.3.2/json3.min.js"></script><![endif]-->
     <script src="/javascripts/socket.io-1.2.0.js"></script>
     <script src="/javascripts/jquery-1.11.1.js"></script>
-
+    <script src="/javascripts/bootstrap.min.js"></script>
 
     <script type="text/javascript" src="/javascripts/tankClient.js"></script>
     <script type="text/javascript" src="/javascripts/tank.js"></script>
     <script type="text/javascript" src="/javascripts/fire.js"></script>
     <script type="text/javascript" src="/javascripts/main.js"></script>
 </head>
-<body>
+<body class="body">
 <!--onload="initGame();"-->
-<div id="loginbox">
-    <div style="width:260px;margin:200px auto;">
-        请先输入你在游戏中的昵称
-        <br/>
-        <br/>
-        <input type="text" style="width:180px;" placeholder="请输入用户名" id="username" name="username" />
-        <input type="password" style="width:180px;" placeholder="请输入密码" id="password" name="password" />
-        <input type="button" style="width:50px;" value="提交" onclick="gameCommon.usernameSubmit();"/>
+<div id="loginbox" class="center-block">
+    <br/><br/><br/><br/><br/>
+    <img src="/images/logo.jpg" class="center-block" style="width:550px;height=150px;">
 
-        <button id="register">注册新账号</button>
+    <div style="width:260px;margin:0px auto;">
+        <br/>
+        <br/>
+        <input type="text" class="form-control" style="width:200px;" placeholder="请输入用户名" id="username" name="username" />
+        <br/>
+        <input type="password" class="form-control" style="width:200px;" placeholder="请输入密码" id="password" name="password" />
+        <br/>
+        <button id="register" class="btn btn-default" style="width:90px;" data-toggle="modal" data-target="#myModal" >注册</button>
+        &nbsp;&nbsp;&nbsp;
+        <input type="button" class="btn btn-primary" style="width:90px;" value="登录" onclick="gameCommon.usernameSubmit();"/>
     </div>
+</div>
+
+<!-- 注册弹窗 -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">新用户注册</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-inline">
+          &nbsp;&nbsp;&nbsp;
+          <div class="form-group">
+              <lable>用户名：</lable>
+              <input type="text" class="form-control" style="width:180px;" placeholder="请输入用户名" id="reg-username" name="username" />
+          </div>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <div class="form-group">
+              <lable>密码：</lable>
+              <input type="password" class="form-control" style="width:180px;" placeholder="请输入密码" id="reg-password" name="password" />
+          </div>
+        </form>
+      </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="gameCommon.registerSubmit();">提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="playbox" style="display:none;">
-    <div class="navbar">
-        <span class="navbar-info">
-            <span id="showusername"></span>
-            <a href="javascript:;" onclick="gameCommon.logout()">退出</a>
-        </span>
+    <nav class="navbar navbar-inverse">
+      <a class="navbar-header" href="javascript:;" onclick="gameCommon.logout()">
+        <img src="/images/logo.jpg" style="height:50px;">
+      </a>
+      <p class="navbar-info">
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#ranking">排行榜</button>
+        <span id="showusername" style="margin-left:30px;"></span>，
+        <a href="javascript:;" onclick="gameCommon.logout()">退出</a>
+      </p>
+    </nav>
+
+    <div id="room-msg" style="margin:50px 200px 0px;color:white;font-size:20px;">
+      <div id="before-game">现在共有<span id="allUserCnt"></span>人在房间中，已有<span id="readyUserCnt">0</span>人准备。正在等待其他玩家准备就绪</div>
     </div>
 
-    <div id="room-msg">
-        <div id="before-game">现在共有<span id="allUserCnt"></span>人在房间中，已有<span id="readyUserCnt">0</span>人准备。</div>
+
+    <div id="waiting-msg" class="canvas-wrapper">
+        <button class="btn btn-danger btn-lg" id="btn-ready" onclick="gameCommon.ready()">准备开始游戏</button>
+        <button class="btn btn-success btn-lg" id="btn-unready" onclick="gameCommon.unready()" style="display: none;">取消准备</button>
     </div>
 
     <div class="canvas-wrapper">
-        <canvas id="gameCanvas" width="320px" height="320px"></canvas>
+      <canvas id="gameCanvas" width="640px" height="480px"></canvas>
+    </div>
 
-        <div id="point-panel">
-            得分信息
-            <div id="now-point">
-
-            </div>
+    <div style="color:white;font-size:20px;margin-left:200px;">
+        <div id="now-point">
         </div>
     </div>
-
-    <div id="game-result" style="display: none;">
-        <span id="winner"></span>赢得了游戏！
-        <button id="btn-restart" onclick="gameCommon.restart()">再来一局</button>
+      
+    <div id="game-result" style="display: none;color:white;font-size:20px;" class="canvas-wrapper">
+        <span id="winner"></span>
+        赢得了游戏！ 
+        <button class="btn btn-primary btn-lg" id="btn-restart" onclick="gameCommon.restart()">再来一局</button>
     </div>
 
-    <div id="waiting-msg">
-        <div>正在等待其他玩家准备就绪</div>
-        <button id="btn-ready" onclick="gameCommon.ready()">准备开始游戏</button>
-        <button id="btn-unready" onclick="gameCommon.unready()" style="display: none;">取消准备</button>
+    <!-- 排行榜弹窗 -->
+    <div class="modal fade" id="ranking" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">排行榜</h4>
+            </div>
+            <div class="modal-body" id="high-score">
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div id="high-score">
-
-    </div>
-
 
 </div>
 
-<div id="dialog-register">
-    <lable>用户名：</lable>
-    <input type="text" style="width:180px;" placeholder="请输入用户名" id="reg-username" name="username" />
-    <lable>密码：</lable>
-    <input type="password" style="width:180px;" placeholder="请输入密码" id="reg-password" name="password" />
-    <input type="button" style="width:50px;" value="提交" onclick="gameCommon.registerSubmit();"/>
-</div>
+
 </body>
 <script>
     ;(function($){

@@ -12,8 +12,8 @@ var currentTank;
 var gameStartFlag=false;
 
 var w,h;//canvas的宽度和长度
-var we=10;//canvas可以容下的宽度的数量和长度的数量
-var he=10;
+var we=20;//canvas可以容下的宽度的数量和长度的数量
+var he=15;
 
 var AllPic = new Image();
 AllPic.src="/images/tanks_sheet.png";

@@ -184,6 +184,7 @@
         updatePoint:function(){
             $("#now-point").html("");
             var htmlstr="";
+            htmlstr+="<div>得分信息</div>";
             for(var item in tankMap){
                 tankMap[item].point=gamingTank[item][5];
                 htmlstr+="<div>"+item+" 得分："+tankMap[item].point+"</div>";
