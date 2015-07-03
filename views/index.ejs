@@ -20,7 +20,7 @@
     <script type="text/javascript" src="/javascripts/fire.js"></script>
     <script type="text/javascript" src="/javascripts/main.js"></script>
 </head>
-<body class="body">
+<body class="body" onload="_l='t';">
 <!--onload="initGame();"-->
 <div id="loginbox" class="center-block">
     <br/><br/><br/><br/><br/>
@@ -89,6 +89,13 @@
 
     <div id="waiting-msg" class="canvas-wrapper">
         <button class="btn btn-danger btn-lg" id="btn-ready" onclick="gameCommon.ready()">准备开始游戏</button>
+        <div id="loading" class="loading">
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
         <button class="btn btn-success btn-lg" id="btn-unready" onclick="gameCommon.unready()" style="display: none;">取消准备</button>
     </div>
 

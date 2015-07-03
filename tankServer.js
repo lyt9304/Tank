@@ -177,7 +177,7 @@ io.on('connection', function(socket){
         //判断是否符合游戏开始条件:所有人都准备，并且准备人数大于等于两人
         if(readyCount==onlineCount && readyCount>=2){
             //遍历readyUser生成一些初始数据
-            map=gameMap[1].slice(0);
+            map=gameMap[2].slice(0);
             for(var item in readyUsers){
                 var x, y, fwd;
                 do{
